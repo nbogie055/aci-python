@@ -83,13 +83,12 @@ def get_token():
     logger.debug(response)
 
     #checks API response
-    if response.status_code != 200:
-        logger.error("ERROR! Could not log in.")
-        return
-
     if response.status_code == 401:
         logger.debug("TACACS+ Server Authentication DENIED")
         sys.exit("TACACS+ Server Authentication DENIED")
+    elif response.status_code != 200:
+         logger.error("ERROR! Could not log in.")
+         sys.exit()
     else:
         logger.info("Login successful")
         print("\nLogin successful")
