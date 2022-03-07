@@ -54,7 +54,7 @@ def get_token():
         if (site == "LAB") or ( site == "lab"):
             fabric = "https://sandboxapicdc.cisco.com"
             break
-        elif (site == "ATL") or (site == "prod"):
+        elif (site == "PROD") or (site == "prod"):
             fabric = "https://prod"
             break
         else:
