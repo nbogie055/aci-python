@@ -6,6 +6,9 @@ python3 script_name.py --fabric lab --user admin --pass 'cisco!23' --chg CHG1234
 For help:
 python3 script_name.py -h
 
+To check and install packages:
+python3 -m pip list
+python3 -m pip install -r requirements.txt
 
 Scripts:
 
@@ -14,4 +17,5 @@ Scripts:
   Scripts will use this function to login and retrieve a token.
   Update lines 42-63 for your fabric name/URL.
   
+ -
   
