@@ -17,5 +17,7 @@ Scripts:
   Scripts will use this function to login and retrieve a token.
   Update lines 42-63 for your fabric name/URL.
   
- -
+-snapshot.py
+
+  Scripts will use this to create a pre and post snapshot with changed number
   
