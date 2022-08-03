@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 '''
-   This script will login to a specific ACI Fabric and generate a token.
+   This script will login to the specific ACI Fabric and generate a token.
 
 
     File name: get_token.py
     Author: Nicholas Bogdajewicz
     Date created: 1/20/2022
-    Date last modified: 2/09/2022
+    Date last modified: 6/21/2022
     Python Version: 3.8.2
     requests version: 2.27.0
 '''
@@ -15,20 +15,8 @@
 import requests
 import json
 import sys
-import logging
-from logging.handlers import RotatingFileHandler
 from getpass import getpass
 import argparse
-
-
-#Logs to file
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s.%(msecs)03d] [%(levelname)s] [%(filename)s] [%(funcName)s():%(lineno)s] %(message)s', handlers=[RotatingFileHandler('logs/get_token.log', maxBytes=100000, backupCount=1)])
-
-#logs to console
-console = logging.StreamHandler()
-console.setLevel(logging.WARNING)
-logging.getLogger('').addHandler(console)
-logger = logging.getLogger(__name__)
 
 
 '''
@@ -38,8 +26,8 @@ def get_token():
 
 
     #takes fabric argument and store the corresponding url
-    parser = argparse.ArgumentParser(description= "Example: python3 script_name.py --fabric lab --user admin --pass 'cisco!23' --chg CHG12345")
-    parser.add_argument("--fabric", dest="fabric", metavar='', type=str, help='Choose Fabric: lab, prod')
+    parser = argparse.ArgumentParser(description='Example: python3 script_name.py --fabric lab --user admin --pass \'cisco!23\' --chg CHG12345')
+    parser.add_argument("--fabric", dest="fabric", metavar='', type=str, help='Choose Fabric: lab, prod1 or prod2')
     parser.add_argument("--user", dest="name", metavar='', type=str, help='Enter username within sinle quotes')
     parser.add_argument("--pass", dest="pwd", metavar='', type=str, help='Enter password within single quotes')
     parser.add_argument("--chg", dest="chg", metavar='', type=str, help='Enter change number:')
@@ -50,21 +38,61 @@ def get_token():
     change = str(args.chg)
     fabric = ""
 
+    if site == None:
+        while True:
+            site = input("Input fabric (lab, prod1 or prod2): ")
+            if site.lower() == "lab" or site.lower() == "prod1" or site.lower() == "prod2":
+                answer = input("Are you sure you want to select " + site + "? (y or n): ")
+                if answer.lower() == "y":
+                    break
+                else:
+                    continue
+            else:
+                print("\nPlease input a valid fabric (lab, prod1 or prod2): ")
+                continue
+    
+    if name == None:
+        while True:
+            name = input("Input username: ")
+            answer = input("Is this the correct username? " + name + " (y or n): ")
+            if answer.lower() == "y":
+                break
+            else:
+                continue
+
+    if pwd == None:
+        while True:
+            pwd = getpass("Input password: ")
+            answer = input("Would you like to re-type your password? (y or n): ")
+            if answer.lower() == "n":
+                break
+            else:
+                continue
+
+    if change == "None":
+        while True:
+            change = input("Input change number: ")
+            answer = input("Is this the correct change number? " + change + " (y or n): ")
+            if answer.lower() == "y":
+                break
+            else:
+                continue
+
     while True:
-        if (site == "LAB") or ( site == "lab"):
-            fabric = "https://sandboxapicdc.cisco.com"
+        if (site == "lab") or ( site == "lab"):
+            fabric = ""
             break
-        elif (site == "PROD") or (site == "prod"):
-            fabric = "https://prod"
+        elif (site == "prod1") or (site == "prod1"):
+            fabric = ""
+            break
+        elif (site == "prod2") or (site == "prod2"):
+            fabric = ""
             break
         else:
             print("Default fabric is lab")
-            fabric = "https://sandboxapicdc.cisco.com"
+            fabric = ""
             break
-
-
-
-
+    
     url = fabric + "/api/aaaLogin.json"
 
     payload = {
@@ -80,20 +108,16 @@ def get_token():
 
     requests.packages.urllib3.disable_warnings()
     response = requests.post(url,data=data, verify=False)
-    logger.debug(response)
 
-    #checks API response
     if response.status_code == 401:
-        logger.debug("TACACS+ Server Authentication DENIED")
         sys.exit("TACACS+ Server Authentication DENIED")
     elif response.status_code != 200:
-         logger.error("ERROR! Could not log in.")
-         sys.exit()
+        sys.exit("Error: Could not log into APIC")
     else:
-        logger.info("Login successful")
         print("\nLogin successful")
    
     response_json = json.loads(response.text)
 
     token = response_json["imdata"][0]["aaaLogin"]["attributes"]["token"]
     return(token, fabric, change)
+
