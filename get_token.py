@@ -7,7 +7,7 @@
     File name: get_token.py
     Author: Nicholas Bogdajewicz
     Date created: 1/20/2022
-    Date last modified: 6/21/2022
+    Date last modified: 1/18/2023
     Python Version: 3.8.2
     requests version: 2.27.0
 '''
@@ -18,6 +18,16 @@ import sys
 from getpass import getpass
 import argparse
 
+#change to desired fabric names and URL 
+dc1 = "dc1"
+dc1url = "https://"
+dc2 = "dc2"
+dc2url = "https://"
+dc3 = "dc3"
+dc3url = "https://"
+dc4 = "dc4"
+dc4url = "https://"
+
 
 '''
 This function takes the name/pwd input to log into the APIC and stores the token as a variable
@@ -26,8 +36,8 @@ def get_token():
 
 
     #takes fabric argument and store the corresponding url
-    parser = argparse.ArgumentParser(description='Example: python3 script_name.py --fabric lab --user admin --pass \'cisco!23\' --chg CHG12345')
-    parser.add_argument("--fabric", dest="fabric", metavar='', type=str, help='Choose Fabric: lab, prod1 or prod2')
+    parser = argparse.ArgumentParser(description='Example: python3 port_config.py --fabric dc1 --user admin --pass \'cisco!23\' --chg CHG12345')
+    parser.add_argument("--fabric", dest="fabric", metavar='', type=str, help='Choose Fabric: ' + dc1 + ", " + dc2 + ", " + dc3 + ", " + dc4)
     parser.add_argument("--user", dest="name", metavar='', type=str, help='Enter username within sinle quotes')
     parser.add_argument("--pass", dest="pwd", metavar='', type=str, help='Enter password within single quotes')
     parser.add_argument("--chg", dest="chg", metavar='', type=str, help='Enter change number:')
@@ -40,15 +50,15 @@ def get_token():
 
     if site == None:
         while True:
-            site = input("Input fabric (lab, prod1 or prod2): ")
-            if site.lower() == "lab" or site.lower() == "prod1" or site.lower() == "prod2":
+            site = input("Input fabric (" + dc1 + ", " + dc2 + ", " + dc3 + ", " + dc4 + "): ")
+            if site.lower() == dc1 or site.lower() == dc2 or site.lower() == dc3 or site.lower() == dc4:
                 answer = input("Are you sure you want to select " + site + "? (y or n): ")
                 if answer.lower() == "y":
                     break
                 else:
                     continue
             else:
-                print("\nPlease input a valid fabric (lab, prod1 or prod2): ")
+                print("\nPlease input a valid fabric (" + dc1 + ", " + dc2 + ", " + dc3 + ", " + dc4 + "): ")
                 continue
     
     if name == None:
@@ -79,18 +89,21 @@ def get_token():
                 continue
 
     while True:
-        if (site == "lab") or ( site == "lab"):
-            fabric = ""
+        if (site.lower() == dc1):
+            fabric = dc1url
             break
-        elif (site == "prod1") or (site == "prod1"):
-            fabric = ""
+        elif (site.lower() == dc2):
+            fabric = dc2url
             break
-        elif (site == "prod2") or (site == "prod2"):
-            fabric = ""
+        elif (site.lower() == dc3):
+            fabric = dc3url
+            break
+        elif (site.lower() == dc4):
+            fabric = dc4url
             break
         else:
-            print("Default fabric is lab")
-            fabric = ""
+            print("Default fabric is " + dc1)
+            fabric = dc1url
             break
     
     url = fabric + "/api/aaaLogin.json"
@@ -121,3 +134,18 @@ def get_token():
     token = response_json["imdata"][0]["aaaLogin"]["attributes"]["token"]
     return(token, fabric, change)
 
+
+
+def refresh_token(fabric, token):
+    url = fabric + "/api/aaaRefresh.json"
+
+    headers = {
+        "Cookie" : f"APIC-Cookie={token}", 
+    }
+
+    requests.packages.urllib3.disable_warnings()
+    response = requests.get(url, headers=headers, verify=False)
+    response_json = json.loads(response.text)
+
+    token2 = response_json["imdata"][0]["aaaLogin"]["attributes"]["token"]
+    return(token2)
